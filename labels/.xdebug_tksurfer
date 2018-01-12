@@ -1,0 +1,8 @@
+Error in  (line 170)
+	while Creating idx to idx transform
+	Error 14: Couldn't load MRI volume.
+xDebug stack (length: 2)
+    01: FunD_New( opVolume=0x7fff45737108, isFileName=/mounts/auto/arman/dcm/template/studyTemplate/labels/lh.middletemporal.label, iRegistrationType=0, isRegistrationFileName=/mounts/auto/arman/dcm/template/studyTemplate/labels/, inScalarSize=163842, iAnatomicalVolume=0x3127c840)
+    01: Creating idx to idx transform
+  00: 
+  00: Initializing glut
