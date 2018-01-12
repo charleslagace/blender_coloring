@@ -34,7 +34,7 @@ from blendHelper import *
 #args = parser.parse_args()
 
 
-EXPERIMENT_NAME = 'alex14Dec2017'
+EXPERIMENT_NAME = 'alex16Aug2016'
 # INPUT_FILES_SHORT = ['14082016', '17082016_ADNI1pt5T', '17082016_ADNI3T', '17082016_C9orf72_1Seq', '17082016_C9orf72', '17082016_GRN', '17082016_MAPT_1Seq', '17082016_MAPT', '17082016_MUTpos']#, '17082016_Static']
 # INPUT_FILES_LONG = ['%s/Plotting_Raz_%s.mat' % (EXPERIMENT_NAME, x) for x in INPUT_FILES_SHORT]
 
