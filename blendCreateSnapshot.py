@@ -1,60 +1,42 @@
-#!BPY
+#!/usr/bin/env python
 
-#import Blender
-#import scipy.io
-import bpy
 import numpy as np
-import colorsys
-from abc import ABC, abstractmethod
 import os
-import sys
 import glob
 import csv #07/02/2018
-
-#05/02/2018
-"""from argparse import ArgumentParser
+from argparse import ArgumentParser #05/02/2018
 
 if __name__ == "__main__":
-    parser = ArgumentParser(description="A powerful tool for visualizing your brain data with Blender.
-                                        Our implementation currently supports nothing.")  
-                            
-    parser.add_argument("--number", type=int, help="for testing")
+    parser = ArgumentParser(description="""A powerful tool for visualizing your brain data with Blender.
+                                        Our implementation currently supports nothing.""")  
     
+    subparsers = parser.add_subparsers(help="Method of data collection", dest="input_type")
     
-    opt = parser.parse_args()"""
+    discrete = subparsers.add_parser("discrete", help="""Brain subdivided into discrete regions. For this method,
+                                     we expect data matrices in .csv files where each row is a label, and each 
+                                     column is an individual measurement. The labels are specified by the Blender
+                                     models and the label mapping in your JSON file. Please note that your data 
+                                     entries should be quantifiable.""")
+    discrete.add_argument("-m", "--models", type=str, help="Directory which contains the Blender models")
+    discrete.add_argument("-l", "--labels", type=str, help="JSON file with mapping from atlases to labels")
+    discrete.add_argument("-d", "--data", type=str, help="directory with data matrices")
+    discrete.add_argument("-a", "--add", action="append", choices=["latex", "animation"], default=[],
+                          help="""latex: create a LaTeX file with 1 figure per data matrix\n
+                          animation: create a 2D animation from each matrix""")
+    
+    opt = parser.parse_args()
 
-blendFullPath = os.path.abspath('.')
-# print(blendFullPath)
-os.chdir(blendFullPath)
-sys.path.append(blendFullPath)
-from blendHelper import *
-
-
-# filename = 'blendCreateSnapshot.py'
-# exec(compile(open('blendCreateSnapshot.py').read(), 'blendCreateSnapshot.py', 'exec'))
-
-#argv = sys.argv
-
-#if "--" not in argv:
-#  argv = []  # as if no args are passed
-#else:
-#  argv = argv[argv.index("--") + 1:]  # get all args after "--"
-
-#parser = argparse.ArgumentParser(description='Launches processes that previously failed, i.e. which have missing idealLiks files')
-#parser.add_argument('--cortical', action="store_true", help='set this is you want to draw cortical regions, otherwise will draw subcortical regions')
-#args = parser.parse_args()
-
-
-EXPERIMENT_NAME = 'alex16Aug2016'
-# INPUT_FILES_SHORT = ['14082016', '17082016_ADNI1pt5T', '17082016_ADNI3T', '17082016_C9orf72_1Seq', '17082016_C9orf72', '17082016_GRN', '17082016_MAPT_1Seq', '17082016_MAPT', '17082016_MUTpos']#, '17082016_Static']
-# INPUT_FILES_LONG = ['%s/Plotting_Raz_%s.mat' % (EXPERIMENT_NAME, x) for x in INPUT_FILES_SHORT]
-
-#INPUT_FILES_LONG = ['Plotting_Raz_06032017_MUTposFTSXVal.mat']
-# the static matrix should be the last one, as it gets removed later
-INPUT_FILES_LONG = np.sort(glob.glob("%s/*.mat" % EXPERIMENT_NAME))
-INPUT_FILES_SHORT = ['_'.join(x.split('_')[3:]).split('.')[0] for x in INPUT_FILES_LONG]
-print(INPUT_FILES_SHORT)
-OUT_FOLDER = 'output/%s' % EXPERIMENT_NAME
+    if opt.input_type == "discrete":
+    
+        EXPERIMENT_NAME = opt.data
+            
+        INPUT_FILES_LONG = np.sort(glob.glob("%s/*.csv" % EXPERIMENT_NAME))
+        INPUT_FILES_SHORT = [x.split("/")[-1][:-4] for x in INPUT_FILES_LONG]
+        print(INPUT_FILES_SHORT)
+        
+        OUT_FOLDER = 'output/%s' % EXPERIMENT_NAME
+        
+#currently here 07/02/2018
 
 #OUT_FOLDERS = [ 'output/%s' for x in MAT_NAMES] # output folders, one per matrix
 NR_SIGN_LEVELS = 3 # number of significance levels
