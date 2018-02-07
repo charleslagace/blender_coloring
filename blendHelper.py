@@ -1,4 +1,4 @@
-import scipy.io
+#import scipy.io
 import bpy
 import numpy as np
 import colorsys

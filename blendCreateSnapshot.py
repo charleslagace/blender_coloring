@@ -1,16 +1,27 @@
 #!BPY
 
-
 #import Blender
-import scipy.io
+#import scipy.io
 import bpy
 import numpy as np
 import colorsys
 from abc import ABC, abstractmethod
 import os
-import argparse
 import sys
 import glob
+import csv #07/02/2018
+
+#05/02/2018
+"""from argparse import ArgumentParser
+
+if __name__ == "__main__":
+    parser = ArgumentParser(description="A powerful tool for visualizing your brain data with Blender.
+                                        Our implementation currently supports nothing.")  
+                            
+    parser.add_argument("--number", type=int, help="for testing")
+    
+    
+    opt = parser.parse_args()"""
 
 blendFullPath = os.path.abspath('.')
 # print(blendFullPath)
@@ -151,19 +162,36 @@ for fileIndex in fileIndices:
   # for ADNI files map to ADNI label order
   indexMapCurr = indexMap.copy()
 
-  matDict = scipy.io.loadmat(INPUT_FILES_LONG[fileIndex])
+  """matDict = scipy.io.loadmat(INPUT_FILES_LONG[fileIndex])
   #print(matDict)
   labels = [ x[0] for x in matDict['EBMeventlabels'][0]] # temporal-1 sigma, frontal 1-sigma, temporal-2 sigma, etc ..]
-  nonZlabels = [ x[0] for x in matDict['EBMlabels'][0]] # temporal, frontal, etc ..
+  nonZlabels = [ x[0] for x in matDict['EBMlabels'][0]] # temporal, frontal, etc .."""
+  
+  with open('temp_csv_files/EBMeventlabels.csv', 'r') as f:
+    reader = csv.reader(f)
+    labels = [j for i in list(reader) for j in i]
+    
+  with open('temp_csv_files/EBMlabels.csv', 'r') as f:
+    reader = csv.reader(f)
+    nonZlabels = [j for i in list(reader) for j in i]
+  
   print('-------------%s---------', INPUT_FILES_SHORT[fileIndex])
   print(labels)
   print(nonZlabels)
   nonZtoZMap = createNonZtoZmap(nonZlabels, labels) # list of lists containing the indices where each sigma level-event is in the labels array, grouped by biomk
   #print(nonZlabels, labels, nonZtoZMap)
 
-  MAT_NAMES = [x for x in matDict.keys() if x.startswith('PVD')]
+  """MAT_NAMES = [x for x in matDict.keys() if x.startswith('PVD')]
   MAT_NAMES.sort()
-  mats = [matDict[k] for k in MAT_NAMES]
+  mats = [matDict[k] for k in MAT_NAMES]"""
+  
+  MAT_NAMES = glob.glob('temp_csv_files/PVD*')
+  print(MAT_NAMES) 
+  
+  mats = []
+  for mat in MAT_NAMES:
+    mats.append(np.genfromtxt(mat, delimiter=','))
+  
   #zscoreEventIndices = matDict['zscore_event'] # array of numbers showing which sigma level is used in entries of labels
   NR_MATRICES = len(mats)
   print('NR_MATRICES', NR_MATRICES)
