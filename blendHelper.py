@@ -326,77 +326,74 @@ def assignColor(signifAbnorm, signifColor, NR_SIGN_LEVELS, COLOR_POINTS):
   return finalColor
 
 
-def colorRegionsAndRender(indexMap, NR_MATRICES, NR_STAGES, NR_EVENTS,
-  mats, MAT_NAMES, SNAP_STAGES, nonZtoZMap, NR_SIGN_LEVELS, COLOR_POINTS, OUT_FOLDER, inputFile, IMG_TYPE):
+def colorRegionsAndRender(indexMap, NR_STAGES, NR_REGIONS, mat, OUT_FOLDER, inputFile):
+  
   objList = bpy.context.selected_objects[::-1]  # make sure to remove the cube from the scene
   # print(objList)
 
-  eventsAbnormalityAll = np.zeros([NR_MATRICES, NR_STAGES, NR_EVENTS], float)
-  # for matrixIndex in [0]:
-  for matrixIndex in range(0, NR_MATRICES):
-    # matrixIndex = 0
-    matrix = mats[matrixIndex]
-    matrixName = MAT_NAMES[matrixIndex]
+  eventsAbnormalityAll = np.zeros([NR_STAGES, NR_REGIONS], float)
+  
+  #currently here 21/03/2018  
+  
+  for stageIndex in range(NR_STAGES):
+    # for stageIndex in [5]:
 
-    for stageIndex in range(NR_STAGES):
-      # for stageIndex in [5]:
+    # stageIndex = 3
 
-      # stageIndex = 3
+    # for each event get the sum of all the probabilities until the current stage
+    eventsAbnormality = np.sum(matrix[:, :SNAP_STAGES[stageIndex]], 1)
 
-      # for each event get the sum of all the probabilities until the current stage
-      eventsAbnormality = np.sum(matrix[:, :SNAP_STAGES[stageIndex]], 1)
+    assert (len(eventsAbnormality) == NR_EVENTS)
+    eventsAbnormalityAll[matrixIndex, stageIndex, :] = eventsAbnormality
 
-      assert (len(eventsAbnormality) == NR_EVENTS)
-      eventsAbnormalityAll[matrixIndex, stageIndex, :] = eventsAbnormality
+    # calc abnorm for plottable biomk
+    if bpy.context.selected_objects:
+      for obj in bpy.context.selected_objects:
+        # print(obj.name, obj, obj.type)
+        regionName = obj.name
 
-      # calc abnorm for plottable biomk
-      if bpy.context.selected_objects:
-        for obj in bpy.context.selected_objects:
-          # print(obj.name, obj, obj.type)
-          regionName = obj.name
+        if regionName in indexMap.keys():
+          # 'Left-Caudate -> nonZlabelNr -> [z-labelNrs], between 1-3'
+          nonZlabelNr = indexMap[regionName]
+          if nonZlabelNr != -1:
+            eventEntriesCurr = nonZtoZMap[nonZlabelNr]
 
-          if regionName in indexMap.keys():
-            # 'Left-Caudate -> nonZlabelNr -> [z-labelNrs], between 1-3'
-            nonZlabelNr = indexMap[regionName]
-            if nonZlabelNr != -1:
-              eventEntriesCurr = nonZtoZMap[nonZlabelNr]
+            # abnormality values for each significance levels
+            signifAbnorm = [eventsAbnormality[x] for x in eventEntriesCurr]
 
-              # abnormality values for each significance levels
-              signifAbnorm = [eventsAbnormality[x] for x in eventEntriesCurr]
+            # colors for each significance levels
+            signifColor = [getInterpColor(signifAbnorm[sigmaLevel - 1], sigmaLevel,
+              NR_SIGN_LEVELS, COLOR_POINTS) for sigmaLevel in
+              range(1, len(signifAbnorm) + 1)]
 
-              # colors for each significance levels
-              signifColor = [getInterpColor(signifAbnorm[sigmaLevel - 1], sigmaLevel,
-                NR_SIGN_LEVELS, COLOR_POINTS) for sigmaLevel in
-                range(1, len(signifAbnorm) + 1)]
+            print("regionName", regionName, nonZlabelNr, eventEntriesCurr)
+            # print(adsas)
+            finalColor = assignColor(signifAbnorm, signifColor, NR_SIGN_LEVELS, COLOR_POINTS)
+            # print(finalColor)
+            # if regionName == 'rh.pial.DK.inferiortemporal':
+            #   print('finalColor', finalColor)
+            #   print('eventEntriesCurr', eventEntriesCurr)
+            #   print('eventsAbnormality', eventsAbnormality)
+            #   print('signifAbnorm', signifAbnorm)
+            #   print('signifColor', signifColor)
+            #   print(adsa)
 
-              print("regionName", regionName, nonZlabelNr, eventEntriesCurr)
-              # print(adsas)
-              finalColor = assignColor(signifAbnorm, signifColor, NR_SIGN_LEVELS, COLOR_POINTS)
-              # print(finalColor)
-              # if regionName == 'rh.pial.DK.inferiortemporal':
-              #   print('finalColor', finalColor)
-              #   print('eventEntriesCurr', eventEntriesCurr)
-              #   print('eventsAbnormality', eventsAbnormality)
-              #   print('signifAbnorm', signifAbnorm)
-              #   print('signifColor', signifColor)
-              #   print(adsa)
+            # material = makeMaterial('mat_%d_%d_%s' % (matrixIndex, stageIndex, regionName), finalColor, (1,1,1), 1)
+            # setMaterial(obj, material)
+            # obj.material_slots[0].material = bpy.data.materials['mat_%d_%d_%s' % (matrixIndex, stageIndex, regionName)]
+            bpy.data.materials['mat_%s' % regionName].diffuse_color = finalColor
 
-              # material = makeMaterial('mat_%d_%d_%s' % (matrixIndex, stageIndex, regionName), finalColor, (1,1,1), 1)
-              # setMaterial(obj, material)
-              # obj.material_slots[0].material = bpy.data.materials['mat_%d_%d_%s' % (matrixIndex, stageIndex, regionName)]
-              bpy.data.materials['mat_%s' % regionName].diffuse_color = finalColor
+            # obj.data.materials.append(material)
 
-              # obj.data.materials.append(material)
+        else:
+          print('object not found: %s', obj.name)
 
-          else:
-            print('object not found: %s', obj.name)
-
-      # print(adsas)
-      outputFile = '%s/%s/%s/%s_stage%d.png' % (
-      OUT_FOLDER, inputFile, matrixName, IMG_TYPE, SNAP_STAGES[stageIndex])
-      print('rendering file %s', outputFile)
-      bpy.data.scenes['Scene'].render.filepath = outputFile
-      bpy.ops.render.render(write_still=True)
+    # print(adsas)
+    outputFile = '%s/%s/%s/%s_stage%d.png' % (
+    OUT_FOLDER, inputFile, matrixName, IMG_TYPE, SNAP_STAGES[stageIndex])
+    print('rendering file %s', outputFile)
+    bpy.data.scenes['Scene'].render.filepath = outputFile
+    bpy.ops.render.render(write_still=True)
 
   return eventsAbnormalityAll
 
